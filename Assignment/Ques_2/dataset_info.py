@@ -53,20 +53,31 @@ def parse_transaction_dataset(dataset_path):
 
 
     # round(max_sup/n, 5)
-    print("Horizontal Txns --> ",horizontal_database)
-    print("Vertical Txns --> ",vertical_database)
-    print('Total transactions : ', len(horizontal_database))
-    print('Total unique items : ', len(vertical_database))
-    print('Transaction width Mean:', round(np.mean(Htxn_widths),2))
-    print('For 1 itemset support ranges form : ' + str(min_sup) + ' to ' + str(max_sup))
-    print('Most 1-Frequent itemset(s) :', max_sup_items)
-    print('Least 1-Frequent itemset(s) :', min_sup_items)
+    # print("Horizontal Txns --> ",horizontal_database)
+    # print("Vertical Txns --> ",vertical_database)
+    # print('Total transactions : ', len(horizontal_database))
+    # print('Total unique items : ', len(vertical_database))
+    # print('Transaction width Mean:', round(np.mean(Htxn_widths),2))
+    # print('For 1 itemset support ranges form : ' + str(min_sup) + ' to ' + str(max_sup))
+    # print('Most 1-Frequent itemset(s) :', max_sup_items)
+    # print('Least 1-Frequent itemset(s) :', min_sup_items)
     
-    return horizontal_database, vertical_database
+    return horizontal_database, vertical_database, min_sup, max_sup, min_sup_items, max_sup_items, Htxn_widths
 
 def main(dataset_path):
     # Get Txn data {Tid vs Itemsets} and {itemId vs Txns}
-    horizontal_database, vertical_database = parse_transaction_dataset(dataset_path)
+    getDataInfo = parse_transaction_dataset(dataset_path)
+
+    horizontal_database = getDataInfo[0]
+    vertical_database = getDataInfo[1]
+    print("Horizontal Txns --> ",horizontal_database)
+    print("Vertical Txns --> ", vertical_database)
+    print('Total transactions : ', len(horizontal_database))
+    print('Total unique items : ', len(vertical_database))
+    print('Transaction width Mean:', round(np.mean(getDataInfo[6]),2))
+    print('For 1 itemset support ranges form : ' + str(getDataInfo[2]) + ' to ' + str(getDataInfo[3]))
+    print('Most 1-Frequent itemset(s) :', getDataInfo[5])
+    print('Least 1-Frequent itemset(s) :', getDataInfo[4])
 
 # For Testing Purpose
 if __name__ == "__main__":

@@ -121,9 +121,9 @@ def Apriori_Algo(minSup):
 def main(dataset_path):
     global DATASET
     global N
-    horizontal_database, vertical_database = dataset_info.parse_transaction_dataset(dataset_path)
+    getDataInfo = dataset_info.parse_transaction_dataset(dataset_path)
     # dataset_info.print_dataset_info(dataset3)
-    DATASET = horizontal_database  # Horizonatal Dataset table [Txn x Items]
+    DATASET = getDataInfo[0]  # Horizonatal Dataset table [Txn x Items]
     N = len(DATASET)
     min_support_cnt = 2
     freqItemSets = Apriori_Algo(min_support_cnt/N)
@@ -138,4 +138,6 @@ def main(dataset_path):
 
 # For Testing Purpose
 if __name__ == "__main__":
-    main("datasets/te.txt")
+    datasets_dirs = ["datasets/te.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
+                 "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
+    main(datasets_dirs[0])

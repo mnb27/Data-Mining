@@ -2,67 +2,69 @@ from datetime import datetime
 from itertools import combinations
 import dataset_info
 
+## SOME VARIABLE NAMES ARE TAKEN AS GIVEN IN D-ECLAT PSEUDO ALGO IN ZAKI'S BOOK
+
+
 # Global Variables
-DATASET = list()  # dataset on which apriori algo will be applied
+DATASET = list()  # vertical dataset on which eclat algo will be applied
 N  = int() # No. of transactions
 min_support_cnt = int()
 d = dict() # diffset (it reduces search time)
 Freq = list()
 
-        
-def base(data):
+
+def DEclat(P, P_dash):
+    global min_support_cnt
+    global d
+    global Freq
+    for Xa in P_dash:
+        temp = dict()
+        temp[Xa] = P[Xa][1]
+        Freq.append(temp)
+        P_temp = dict()
+        P_dash_temp = list()
+        for Xb in P_dash:
+            if P_dash.index(Xb) > P_dash.index(Xa):
+                temp = set(Xa).union(set(Xb))
+                Xab = list(combinations(temp, len(temp)))[0]
+                d[Xab] = (d[Xb]).difference(d[Xa])
+                sup_Xab = P[Xa][1] - abs(len(d[Xab]))
+                if sup_Xab >= min_support_cnt:
+                    P_temp[Xab] = [d[Xab], sup_Xab]
+                    P_dash_temp.append(Xab)
+        if len(P_dash_temp) != 0:
+            DEclat(P_temp, P_dash_temp)
+
+
+def Eclat_Algo(data):
+
+    # P base
     global min_support_cnt
     global d
     P = dict()
-    P_help = list()
+    P_dash = list()
     Transaction = set()
     for i in data.keys():
         Transaction = Transaction.union(data[i])
     for i in data.keys():
-        if len(data[i]) >= min_support_cnt: 
-            a = list(combinations([i], len([i])))[0]
-            d[a] = Transaction.difference(data[i])
-            P[a] = [d[a], len(data[i])]
-            P_help.append(a)
-    return P, P_help
-
-
-def recursive_eclat(P, P_help):
-    global min_support_cnt
-    global d
-    global Freq
-    #print(self.Freq)
-    for i in P_help:
-        temp = dict()
-        temp[i] = P[i][1]
-        Freq.append(temp)
-        P_temp = dict()
-        P_help_temp = list()
-        for j in P_help:
-            if P_help.index(j) > P_help.index(i):
-                temp = set(i).union(set(j))
-                ij = list(combinations(temp, len(temp)))[0]
-                d[ij] = (d[j]).difference(d[i])
-                sup_ij = P[i][1] - len(d[ij])
-                if sup_ij >= min_support_cnt:
-                    P_temp[ij] = [d[ij], sup_ij]
-                    P_help_temp.append(ij)
-        if len(P_help_temp) > 0:
-            recursive_eclat(P_temp, P_help_temp)
-
-
-def Eclat_Algo(data):
-    P, P_help = base(data)
-    recursive_eclat(P, P_help)
+        sup_i = len(data[i])
+        if sup_i >= min_support_cnt: 
+            Xa = list(combinations([i], len([i])))[0]
+            P_dash.append(Xa)
+            d[Xa] = Transaction.difference(data[i])
+            P[Xa] = [d[Xa], len(data[i])]
+            
+    DEclat(P, P_dash) # Main D-Eclat algo
     time_end = datetime.now()
 
     itemset_length = dict()
     for i in Freq:
         itemset = list(i.keys())[0]
-        if len(list(itemset)) in itemset_length.keys():
-            itemset_length[len(list(itemset))].append(i)
+        length = len(list(itemset))
+        if length not in itemset_length.keys():
+            itemset_length[length] = [i]
         else:
-            itemset_length[len(list(itemset))] = [i]
+            itemset_length[length].append(i)
     
     Freq_itemsets = list()
     for i in sorted(itemset_length.keys()):
@@ -75,14 +77,16 @@ def main(dataset_path):
     global DATASET
     global N
     global min_support_cnt
-    horizontal_database, vertical_database = dataset_info.parse_transaction_dataset(dataset_path)
+    getDataInfo = dataset_info.parse_transaction_dataset(dataset_path)
     # dataset_info.print_dataset_info(dataset3)
     min_support_cnt = 2
-    DATASET = vertical_database  # Vertical Dataset table [Txn x Items]
-    N = len(DATASET)
+    DATASET = getDataInfo[1]  # Vertical Dataset table [Txn x Items]
+    N = len(DATASET) # transactions
     freqItemSets, time_end = Eclat_Algo(DATASET)
-    print(freqItemSets)
-    print("SUPPORT COUNT TAKEN :",min_support_cnt)
+    # print(freqItemSets)
+    print("Dataset Taken :", dataset_path)
+    print("Total Transactions :", N)
+    print("Support Count Taken :",min_support_cnt)
     k = 1
     for k_freq in freqItemSets:
         print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(k_freq), "---> ")
@@ -92,4 +96,6 @@ def main(dataset_path):
 
 # For Testing Purpose
 if __name__ == "__main__":
-    main("datasets/te.txt")
+    datasets_dirs = ["datasets/te.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
+                 "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
+    main(datasets_dirs[0])
