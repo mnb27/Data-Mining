@@ -1,68 +1,74 @@
 from itertools import combinations
 import dataset_info
 
-class NodeStructure():
+class NodeStructure:
 
-    def __init__(self, value, count, parent):
-        self.value = value
-        self.count = count
+    def __init__(self, val, counter, parent, link, children, printIT=False):
+        self.val = val
+        self.counter = counter
         self.parent = parent
-        self.link = None
-        self.children = list()
+        self.link = link
+        self.children = children
+        self.printIT = printIT
 
-    def getChild(self, value):
-        childNode = None
+    def getChild(self, val, resChildNode):
+        # childNode = None
+        childNode = resChildNode
         flag = False
         for node in self.children:
-            if node.value == value:
+            if node.val == val:
                 childNode = node
                 flag = True
                 break
+        if(self.printIT): print("Inside getChild debug")
         return flag, childNode
 
-    def add_child(self, value):
-        newChild = NodeStructure(value, 1, self)
+    def addChild(self, val, counter):
+        newChild = NodeStructure(val, counter=counter, parent=self, link=None, children=list())
         self.children.append(newChild)
-        return newChild
+        return newChild, True
 
-## HELPER FUNCTIONS ######################
-def find_frequent_items(transactions, minSup):
-    itemSet = dict()
-    for transaction in transactions:
-        for item in transaction:
-            if item not in itemSet:
-                itemSet[item] = 1
-            else:
-                itemSet[item] += 1
 
-    for key, val in list(itemSet.items()):
-        if itemSet[key] >= minSup:
-            continue
-        else:
-            del itemSet[key]
-    return itemSet
-
-def build_header_table(frequent):
-    headers = dict()
-    for key in frequent.keys():
-        headers[key] = None
-    return headers
-####################################
-
-class FPTreeStructure():
+class FPTreeStructure:
  
-    def __init__(self, transactions, threshold, root_value, root_count):
+    def __init__(self, dataset, threshold, root_val, root_counter):
         
-        self.transactions = transactions
-        self.frequent = find_frequent_items(transactions, threshold)
-        self.headers = build_header_table(self.frequent)
-        self.root = self.build_fptree(root_value,root_count, self.frequent, self.headers)
+        self.dataset = dataset
+        self.frequent, delItemSets = self.find_frequent_items(dataset, threshold, itemSet=dict())
+        # print(delItemSets)
 
-    def build_fptree(self, root_value,root_count, frequent, headers):
+        #initialize header table
+        headers = dict()
+        for key in (self.frequent).keys():
+            headers[key] = None
+        self.headers = headers
 
-        root = NodeStructure(root_value, root_count, None)
+        self.root = self.build_fptree(root_val,root_counter, self.frequent, self.headers)
 
-        for transaction in self.transactions:
+    def find_frequent_items(self, dataset, minSup, itemSet):
+        # itemSet = dict()
+        delItemSets = list()
+        for transaction in dataset:
+            for item in transaction:
+                if item not in itemSet:
+                    itemSet[item] = 1
+                else:
+                    itemSet[item] += 1
+
+        for key, val in list(itemSet.items()):
+            if itemSet[key] >= minSup:
+                continue
+            else:
+                delItemSets.append(itemSet[key])
+                del itemSet[key]
+        return itemSet, delItemSets
+
+    def build_fptree(self, root_val, root_counter, frequent, headers):
+
+        root = NodeStructure(val=root_val, counter=root_counter, parent=None, link=None, children=list())
+        # root = NodeStructure(root_val, root_counter, parent)
+
+        for transaction in self.dataset:
             sorted_items = list()
             for item in transaction:
                 if item not in frequent:
@@ -77,26 +83,28 @@ class FPTreeStructure():
 
     def insert_tree(self, items, node, headers):
 
-        value = items[0]
-        flag, child = node.getChild(value)
+        val = items[0]
+        flag, child = node.getChild(val=val, resChildNode=None)
         if flag==False: 
             # Add new child.
-            child = node.add_child(value)
+            child, boolFlag = node.addChild(val=val, counter=1)
 
             # Link it to header structure [linked list table of pointers]
-            if headers[value] is not None:
-                current = headers[value]
+            if headers[val] is not None:
+                current = headers[val]
                 while current.link:
                     current = current.link
                 current.link = child
             else:
-                headers[value] = child
+                headers[val] = child
         else: # child not none --> increment counter
-            child.count += 1
+            child.counter += 1
 
         left_items = items[1:]
         if len(left_items) != 0:
             self.insert_tree(left_items, child, headers)
+
+        return "successfully inserted"
 
     def isOnePathTree(self, node):
 
@@ -106,20 +114,12 @@ class FPTreeStructure():
         elif num_children > 1:
             return False
         else:
-            return True and self.tree_has_single_path(node.children[0])
-
-    def mine_patterns(self, threshold):
-
-        if (len(self.root.children) <=1):
-            return self.generate_pattern_list()
-        elif self.isOnePathTree(self.root):
-            return self.generate_pattern_list()
-        else:
-            return self.zip_patterns(self.mine_sub_trees(threshold))
+            return True and self.isOnePathTree(node.children[0])
+        return "end of return"
 
     def zip_patterns(self, patterns):
 
-        suffix = self.root.value
+        suffix = self.root.val
         if suffix is None:
             return patterns, len(patterns)
         else:
@@ -130,24 +130,25 @@ class FPTreeStructure():
                 ConcatKey = sorted(ConcatKey)
                 new_patterns[tuple(ConcatKey)] = patterns[key]
             return new_patterns, len(new_patterns)
-
         return None,0
 
     def generate_pattern_list(self):
 
         patterns = dict()
         items = self.frequent.keys()
-        suffix = self.root.value
-        suffix_value = list()
+        suffix = self.root.val
+        suffix_val = list()
         # If we are in a conditional tree, the suffix is a pattern on its own.
         if suffix is not None:
-            suffix_value = [suffix]
-            patterns[tuple([suffix])] = self.root.count
+            suffix_val = [suffix]
+            patterns[tuple([suffix])] = self.root.counter
 
-        for i in range(len(items)):
-            for subset in combinations(items, i+1):
-                pattern = tuple(sorted(list(subset) + suffix_value))
-                res = int()
+        for i in range(1, len(items) + 1):
+            for subset in combinations(items, i):
+                pattern = tuple(sorted(list(subset) + suffix_val))
+                # patterns[pattern] = min([self.frequent[x] for x in subset])
+                res = float('inf')
+                # res = int()
                 for x in subset:
                     res = min(res, self.frequent[x])
                 patterns[pattern] = res
@@ -173,13 +174,13 @@ class FPTreeStructure():
 
             # For each occurrence of the item, trace the path back to the root node.
             for suffix in suffixes:
-                frequency = suffix.count
+                frequency = suffix.counter
                 path = list()
                 parent = suffix.parent
 
                 while parent.parent:
                     # print("Debug")
-                    path.append(parent.value)
+                    path.append(parent.val)
                     parent = parent.parent
 
                 for i in range(frequency):
@@ -198,21 +199,40 @@ class FPTreeStructure():
 
         return patterns
 
+    def mine_patterns(self, threshold):
 
-def find_frequent_patterns(transactions, support_threshold):
-    # Find the frequent paterns
-    tree = FPTreeStructure(transactions, support_threshold, None, None)
-    return tree.mine_patterns(support_threshold)
+        if (len(self.root.children) <=1):
+            return self.generate_pattern_list()
+        elif self.isOnePathTree(self.root):
+            return self.generate_pattern_list()
+        else:
+            return self.zip_patterns(self.mine_sub_trees(threshold))
+        return "end of return"
+
+class FP_Growth_Algo:
+    def __init__(self, dataset, min_sup_count):
+        self.dataset = dataset
+        self.min_sup_count = min_sup_count
+
+    def fpg_Algo(self):
+        # Find the frequent paterns
+        root_val = None
+        root_counter = None
+        tree = FPTreeStructure(self.dataset, self.min_sup_count, root_val, root_counter)
+        return tree.mine_patterns(self.min_sup_count)
 
 def main(dataset_path):
     min_support_cnt = 2
+    # min_support_cnt = int(input())
+    
     getDataInfo = dataset_info.parse_transaction_dataset(dataset_path)
     DATASET = getDataInfo[0] # Horizonatal Dataset table [Txn x Items]
     print("Dataset Taken :", dataset_path)
-    print("Total Transactions :", len(DATASET))
-    print("Support Count Taken :",min_support_cnt)
-    # Frequent Itemset and Association Rules
-    freqItemSets, totalFreqItemS = find_frequent_patterns(DATASET, min_support_cnt)
+    print("Total dataset :", len(DATASET))
+    print("Support counter Taken :",min_support_cnt)
+
+    FPGrowthInst = FP_Growth_Algo(DATASET, min_support_cnt)
+    freqItemSets, totalFreqItemS = FPGrowthInst.fpg_Algo()
     # print(freqItemSets)
 
     sorted_itemsets = dict()
@@ -228,7 +248,7 @@ def main(dataset_path):
 
     # print(kfreq)
     for k in lengths:
-        print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(kfreq[k]), "---> ")
+        print("counter of " + str(k)+"-Frequent Itemsets"+': ',len(kfreq[k]), "---> ")
         # print(kfreq[k])
         print(kfreq[k])
         print()

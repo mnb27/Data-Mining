@@ -9,14 +9,17 @@ import dataset_info
 DATASET = list()  # vertical dataset on which eclat algo will be applied
 N  = int() # No. of transactions
 min_support_cnt = int()
-d = dict() # diffset (it reduces search time)
+diffset = dict() # to reduce search time
 Freq = list()
 
 
-def DEclat(P, P_dash):
+def DEclat(P, P_dash, printIT=False):
     global min_support_cnt
-    global d
+    global diffset
     global Freq
+
+    d = diffset # shorthand
+
     for Xa in P_dash:
         temp = dict()
         temp[Xa] = P[Xa][1]
@@ -33,14 +36,17 @@ def DEclat(P, P_dash):
                     P_temp[Xab] = [d[Xab], sup_Xab]
                     P_dash_temp.append(Xab)
         if len(P_dash_temp) != 0:
-            DEclat(P_temp, P_dash_temp)
+            if(printIT): print("P_temp: ",P_temp," and P_dash_temp : ",P_dash_temp)
+            DEclat(P_temp, P_dash_temp, printIT)
 
 
-def Eclat_Algo(data):
-
+def Eclat_Algo(data, printIT=False):
     # P base
     global min_support_cnt
-    global d
+    global diffset
+
+    d = diffset # shorthand
+
     P = dict()
     P_dash = list()
     Transaction = set()
@@ -53,8 +59,10 @@ def Eclat_Algo(data):
             P_dash.append(Xa)
             d[Xa] = Transaction.difference(data[i])
             P[Xa] = [d[Xa], len(data[i])]
-            
-    DEclat(P, P_dash) # Main D-Eclat algo
+    if(printIT):
+        print("Diffset: ",d)
+        print("P: ",P," and P_dash : ",P_dash)
+    DEclat(P, P_dash, printIT) # Main D-Eclat algo
     time_end = datetime.now()
 
     itemset_length = dict()
@@ -78,11 +86,13 @@ def main(dataset_path):
     global N
     global min_support_cnt
     getDataInfo = dataset_info.parse_transaction_dataset(dataset_path)
-    # dataset_info.print_dataset_info(dataset3)
+
     min_support_cnt = 2
+    # min_support_cnt = int(input())
+
     DATASET = getDataInfo[1]  # Vertical Dataset table [Txn x Items]
     N = len(DATASET) # transactions
-    freqItemSets, time_end = Eclat_Algo(DATASET)
+    freqItemSets, time_end = Eclat_Algo(DATASET, False)
     # print(freqItemSets)
     print("Dataset Taken :", dataset_path)
     print("Total Transactions :", N)

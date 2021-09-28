@@ -3,9 +3,9 @@ import dataset_info
 import math
 
 class Apriori:
-  def __init__(self, dataset, total_txns, min_support):
+  def __init__(self, dataset, total_txns, min_support_cnt):
     self.dataset = dataset # horizontal dataset
-    self.min_support = min_support # min support required
+    self.min_support_cnt = min_support_cnt # min support required
     self.total_txns = total_txns # length of txn
 
   def getSupportCount(self, itemList, k):
@@ -50,13 +50,14 @@ class Apriori:
     leaves = Candidate_k_1
     return leaves
 
-  def Apriori_Algo(self, minSup):
+  def Apriori_Algo(self):
     '''
     Parameters :
     miSup - Minimum Support required
     Output:
     freqentItemSets : List
     '''
+    minSup = self.min_support_cnt/self.total_txns
     freqentItemSets = list()
     leaves = list()
 
@@ -108,7 +109,7 @@ class Apriori:
             freqentItemSets.append(Freq_K)
         k = k + 1
 
-    return freqentItemSets
+    return freqentItemSets, k
 
 
 # For Testing Purpose
@@ -117,19 +118,22 @@ def main(dataset_path):
     DATASET = getDataInfo[0]  # Horizonatal Dataset table [Txn x Items]
 
     N = len(DATASET)
+
     min_support_cnt = 2
+    # min_support_cnt = int(input())
     AprioriInst = Apriori(DATASET, N, min_support_cnt)
 
-    freqItemSets = AprioriInst.Apriori_Algo(min_support_cnt/N)
+    freqItemSets, lvl = AprioriInst.Apriori_Algo()
     # print(freqItemSets)
+    # print("Max k explored or valid : ",lvl-1)
     print("Dataset Taken :", dataset_path)
     print("Total Transactions :", N)
     print("Support Count Taken :",min_support_cnt)
     k = 1
     for k_freq in freqItemSets:
         print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(k_freq), "---> ")
-        print(k_freq)
         k = k + 1
+        print(k_freq)
         print()
 
 # For Testing Purpose
