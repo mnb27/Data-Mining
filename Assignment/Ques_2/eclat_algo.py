@@ -1,6 +1,11 @@
-from datetime import datetime
-from itertools import combinations
-import dataset_info
+"""
+2018CSB1069 - Aman Bilaiya
+Implementation of Eclat Algorithm with D-Eclat optimization as given in Zaki's Book
+"""
+
+from datetime import datetime # used to calculate program execution time
+from itertools import combinations # used to generate subset combinations of given set
+import dataset_info # lib implemented for parsing data
 
 ## SOME VARIABLE NAMES ARE TAKEN AS GIVEN IN D-ECLAT PSEUDO ALGO IN ZAKI'S BOOK
 
@@ -63,7 +68,6 @@ def Eclat_Algo(data, printIT=False):
         print("Diffset: ",d)
         print("P: ",P," and P_dash : ",P_dash)
     DEclat(P, P_dash, printIT) # Main D-Eclat algo
-    time_end = datetime.now()
 
     itemset_length = dict()
     for i in Freq:
@@ -77,26 +81,38 @@ def Eclat_Algo(data, printIT=False):
     Freq_itemsets = list()
     for i in sorted(itemset_length.keys()):
         Freq_itemsets.append(itemset_length[i])
-    return Freq_itemsets, time_end
+    return Freq_itemsets
         
 
 # For Testing Purpose
 def main(dataset_path):
+
+    print("..................ECLAT ALGORITHM STARTED.................")
+    start_clock = datetime.now() # algo started
+    
     global DATASET
     global N
     global min_support_cnt
     getDataInfo = dataset_info.parse_transaction_dataset(dataset_path)
 
-    min_support_cnt = 2
+    DATASET = getDataInfo[1]  # Vertical Dataset table [Txn x Items]
+    N = len(DATASET) # vertical [rows count]
+    M = len(getDataInfo[0])
+    # float(0.02*len(getDataInfo[0]))
+
+    min_support_cnt = 2 # enter this in terms of count not ratio or give ratio*M
     # min_support_cnt = int(input())
 
-    DATASET = getDataInfo[1]  # Vertical Dataset table [Txn x Items]
-    N = len(DATASET) # transactions
-    freqItemSets, time_end = Eclat_Algo(DATASET, False)
+    freqItemSets = Eclat_Algo(DATASET, False)
+
+    # uncomment below line to print frequent items 
     # print(freqItemSets)
+    
     print("Dataset Taken :", dataset_path)
-    print("Total Transactions :", N)
+    print("Total Transactions :", len(getDataInfo[0]))
     print("Support Count Taken :",min_support_cnt)
+
+    # uncomment below lines to print frequent items k-wise 
     k = 1
     for k_freq in freqItemSets:
         print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(k_freq), "---> ")
@@ -104,8 +120,11 @@ def main(dataset_path):
         k = k + 1
         print()
 
+    finish_clock = datetime.now() # algo started
+    print("Time taken: ",round((finish_clock - start_clock).total_seconds(), 2), " seconds")
+
 # For Testing Purpose
 if __name__ == "__main__":
-    datasets_dirs = ["datasets/te.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
+    datasets_dirs = ["datasets/test.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
                  "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
     main(datasets_dirs[0])

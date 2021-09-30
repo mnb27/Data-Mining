@@ -1,5 +1,12 @@
-from itertools import combinations
-import dataset_info
+"""
+2018CSB1069 - Aman Bilaiya
+Implementation of FP Growth Algorithm as given in Zaki's Book
+"""
+
+from itertools import combinations # used to generate subset combinations of given set
+from datetime import datetime # used to calculate program execution time
+
+import dataset_info # lib implemented for parsing data
 
 class NodeStructure:
 
@@ -222,11 +229,17 @@ class FP_Growth_Algo:
         return tree.mine_patterns(self.min_sup_count)
 
 def main(dataset_path):
-    min_support_cnt = 2
-    # min_support_cnt = int(input())
+
+    print("..................FP GROWTH ALGORITHM STARTED.................")
+    start_clock = datetime.now() # algo started
     
     getDataInfo = dataset_info.parse_transaction_dataset(dataset_path)
     DATASET = getDataInfo[0] # Horizonatal Dataset table [Txn x Items]
+    N = len(DATASET)
+
+    min_support_cnt = float(0.08*N) # enter this in terms of count not ratio or give ratio*N
+    # min_support_cnt = int(input())
+
     print("Dataset Taken :", dataset_path)
     print("Total dataset :", len(DATASET))
     print("Support counter Taken :",min_support_cnt)
@@ -238,7 +251,7 @@ def main(dataset_path):
     sorted_itemsets = dict()
     for k in sorted(freqItemSets, key=len, reverse=True):
         sorted_itemsets[k] = freqItemSets[k]
-    print(sorted_itemsets)
+    # print(sorted_itemsets)
 
     kfreq = dict()
     lengths = set()
@@ -246,16 +259,21 @@ def main(dataset_path):
         lengths.add(len(key))
         kfreq.setdefault(len(key), list()).append({key,freqItemSets[key]})
 
+    # uncomment below line to print frequent items 
     # print(kfreq)
-    for k in lengths:
-        print("counter of " + str(k)+"-Frequent Itemsets"+': ',len(kfreq[k]), "---> ")
-        # print(kfreq[k])
-        print(kfreq[k])
-        print()
-        
+    
+    # uncomment below lines to print frequent items k-wise 
+    # for k in lengths:
+    #     print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(kfreq[k]), "---> ")
+    #     # print(kfreq[k])
+    #     print(kfreq[k])
+    #     print()
+    
+    finish_clock = datetime.now() # algo started
+    print("Time taken: ",round((finish_clock - start_clock).total_seconds(), 2), " seconds")
 
 # For Testing Purpose
 if __name__=="__main__":
-    datasets_dirs = ["datasets/te.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
+    datasets_dirs = ["datasets/test.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
                  "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
-    main(datasets_dirs[0])
+    main(datasets_dirs[1])

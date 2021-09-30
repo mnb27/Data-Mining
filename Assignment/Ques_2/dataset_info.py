@@ -1,5 +1,10 @@
+"""
+2018CSB1069 - Aman Bilaiya
+Program to parse dataset and return transaction table & other informations
+"""
+
 import numpy as np
-from datetime import datetime
+from datetime import datetime # used to calculate program execution time
 
 def parse_transaction_dataset(dataset_path):
     Lines = list()
@@ -65,20 +70,28 @@ def parse_transaction_dataset(dataset_path):
     return horizontal_database, vertical_database, min_sup, max_sup, min_sup_items, max_sup_items, Htxn_widths
 
 def main(dataset_path):
+
+    start_clock = datetime.now()
+
     # Get Txn data {Tid vs Itemsets} and {itemId vs Txns}
     getDataInfo = parse_transaction_dataset(dataset_path)
 
     horizontal_database = getDataInfo[0]
     vertical_database = getDataInfo[1]
-    print("Horizontal Txns --> ",horizontal_database)
-    print("Vertical Txns --> ", vertical_database)
+    # print("Horizontal Txns --> ",horizontal_database)
+    # print("Vertical Txns --> ", vertical_database)
     print('Total transactions : ', len(horizontal_database))
     print('Total unique items : ', len(vertical_database))
     print('Transaction width Mean:', round(np.mean(getDataInfo[6]),2))
-    print('For 1 itemset support ranges form : ' + str(getDataInfo[2]) + ' to ' + str(getDataInfo[3]))
+    print('For 1-itemset support count ranges form : ' + str(getDataInfo[2]) + ' to ' + str(getDataInfo[3]))
     print('Most 1-Frequent itemset(s) :', getDataInfo[5])
-    print('Least 1-Frequent itemset(s) :', getDataInfo[4])
+    # print('Least 1-Frequent itemset(s) :', getDataInfo[4])
+
+    finish_clock = datetime.now()
+    print("Time taken to process data: ",round((finish_clock - start_clock).total_seconds(), 2), " seconds")
 
 # For Testing Purpose
 if __name__ == "__main__":
-    main("datasets/te.txt")
+    datasets_dirs = ["datasets/test.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
+                 "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
+    main(datasets_dirs[1])
