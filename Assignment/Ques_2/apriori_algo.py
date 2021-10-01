@@ -7,7 +7,7 @@ from itertools import combinations # used to generate subset combinations of giv
 import math
 from datetime import datetime # used to calculate program execution time
 import dataset_info # lib implemented for parsing data
-
+from time import time
 
 class Apriori:
   def __init__(self, dataset, total_txns, min_support_cnt):
@@ -66,7 +66,7 @@ class Apriori:
     return candidate_k1List, True
 
   def Apriori_Algo(self):
-    minSup = self.min_support_cnt/self.total_txns
+    minSup = float(self.min_support_cnt/self.total_txns)
     freqentItemSets = list()
     leaf_nodes = list()
 
@@ -123,6 +123,13 @@ class Apriori:
     return freqentItemSets, k
 
 
+def memory_usage_psutil():
+    # return the memory usage in bytes
+    import os
+    import psutil
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss
+
 # For Testing Purpose
 def main(dataset_path):
 
@@ -133,10 +140,11 @@ def main(dataset_path):
 
     N = len(DATASET)
 
-    min_support_cnt = float(0.1*N)   # enter this in terms of count not ratio or give ratio*N
+    min_support_cnt = 4170.48   # enter this in terms of count not ratio or give ratio*N
     # min_support_cnt = int(input())
 
-    start_clock = datetime.now() # algo started
+    # start_clock = datetime.now() # algo started
+    start_clock = time() # algo started
     AprioriInst = Apriori(DATASET, N, min_support_cnt)
 
     freqItemSets, lvl = AprioriInst.Apriori_Algo()
@@ -150,18 +158,24 @@ def main(dataset_path):
     print("Support Count Taken :",min_support_cnt)
 
     # uncomment below lines to print frequent items k-wise 
-    # k = 1
-    # for k_freq in freqItemSets:
-    #     print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(k_freq), "---> ")
-    #     k = k + 1
-    #     print(k_freq)
-    #     print()
+    k = 1
+    for k_freq in freqItemSets:
+        print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(k_freq), "---> ")
+        k = k + 1
+        # print(k_freq)
+        print()
 
-    finish_clock = datetime.now()
-    print("Time taken: ",round((finish_clock - start_clock).total_seconds(), 2), " seconds")
+    # finish_clock = datetime.now()
+    # print("Time taken: ",round((finish_clock - start_clock).total_seconds(), 2), " seconds")
+
+    finish_clock = time()
+    print("Time Taken: " + "%.4f" % (finish_clock - start_clock) + " seconds")
+
+    mem_usage = memory_usage_psutil()
+    print("Memory used: ",float(mem_usage/(1024*1024))," MB")
 
 # For Testing Purpose
 if __name__ == "__main__":
     datasets_dirs = ["datasets/test.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
                  "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
-    main(datasets_dirs[3])
+    main(datasets_dirs[2])

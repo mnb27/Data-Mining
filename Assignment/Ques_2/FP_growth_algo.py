@@ -1,279 +1,289 @@
-"""
-2018CSB1069 - Aman Bilaiya
-Implementation of FP Growth Algorithm as given in Zaki's Book
-"""
+from time import time
 
-from itertools import combinations # used to generate subset combinations of given set
-from datetime import datetime # used to calculate program execution time
+def get_transactions_db_from_dataset(file_path):
+    """
+    Get data from csv file with a specific length. And redirect names to indices for less computing in the algorithm.
+    :param csv_file_path: string
+    :param data_length: int. no more than 9835.
+    :return: name2index, index2name, transactions
+    """
+    transactions_strings = []
+    transactions = []
+    name2index = dict()
+    current_count = 0
 
-import dataset_info # lib implemented for parsing data
+    fh = open(file_path, "r")
+    Lines = fh.readlines()
+    for st in Lines:
+        st = st.strip()
+        transactions_strings.append(st)
 
-class NodeStructure:
+    transactions_data = [transaction_string.split(" ") for transaction_string in transactions_strings]
 
-    def __init__(self, val, counter, parent, link, children, printIT=False):
-        self.val = val
-        self.counter = counter
-        self.parent = parent
-        self.link = link
-        self.children = children
-        self.printIT = printIT
+    for transaction in transactions_data:
+        for item in transaction:
+            if item not in name2index.keys():
+                name2index[item] = current_count
+                current_count += 1
+    index2name = {value: key for key, value in name2index.items()}  # reverse
 
-    def getChild(self, val, resChildNode):
-        # childNode = None
-        childNode = resChildNode
-        flag = False
-        for node in self.children:
-            if node.val == val:
-                childNode = node
-                flag = True
-                break
-        if(self.printIT): print("Inside getChild debug")
-        return flag, childNode
+    for transaction in transactions_data:
+        itemset = [name2index[item] for item in transaction]
+        transactions.append(itemset)
 
-    def addChild(self, val, counter):
-        newChild = NodeStructure(val, counter=counter, parent=self, link=None, children=list())
-        self.children.append(newChild)
-        return newChild, True
+    return name2index, index2name, transactions
 
 
-class FPTreeStructure:
- 
-    def __init__(self, dataset, threshold, root_val, root_counter):
-        
-        self.dataset = dataset
-        self.frequent, delItemSets = self.find_frequent_items(dataset, threshold, itemSet=dict())
-        # print(delItemSets)
-
-        #initialize header table
-        headers = dict()
-        for key in (self.frequent).keys():
-            headers[key] = None
-        self.headers = headers
-
-        self.root = self.build_fptree(root_val,root_counter, self.frequent, self.headers)
-
-    def find_frequent_items(self, dataset, minSup, itemSet):
-        # itemSet = dict()
-        delItemSets = list()
-        for transaction in dataset:
-            for item in transaction:
-                if item not in itemSet:
-                    itemSet[item] = 1
-                else:
-                    itemSet[item] += 1
-
-        for key, val in list(itemSet.items()):
-            if itemSet[key] >= minSup:
-                continue
+def get_frequent_one_itemsets_and_counts(transactions_db, min_sup):
+    """
+    Get frequent 1-itemsets and their occurrences from a transactions database.
+    This will be the "first-scan" of database in FP_Growth.
+    :param transactions_db: all transactions in a list of list of numbers.
+    :return: frequent 1-itemsets (in dictionary showing their occurrences).
+    """
+    itemSet = dict()
+    delItemSets = list()
+    for transaction in transactions_db:
+        for item in transaction:
+            if item not in itemSet:
+                itemSet[item] = 1
             else:
-                delItemSets.append(itemSet[key])
-                del itemSet[key]
-        return itemSet, delItemSets
+                itemSet[item] += 1
 
-    def build_fptree(self, root_val, root_counter, frequent, headers):
+    for key, val in list(itemSet.items()):
+        if itemSet[key] >= min_sup:
+            continue
+        else:
+            delItemSets.append(itemSet[key])
+            del itemSet[key]
+    return itemSet, delItemSets
 
-        root = NodeStructure(val=root_val, counter=root_counter, parent=None, link=None, children=list())
-        # root = NodeStructure(root_val, root_counter, parent)
 
-        for transaction in self.dataset:
-            sorted_items = list()
-            for item in transaction:
-                if item not in frequent:
-                    continue
-                else:
-                    sorted_items.append(item)
-            sorted_items.sort(key=lambda x: frequent[x], reverse=True)
-            if len(sorted_items) != 0:
-                self.insert_tree(sorted_items, root, headers)
+class FrequentItemsList:
+    """
+    An object records f-list which sort frequency items in frequency descending order.
+    """
+    def __init__(self, transactions_db, min_sup):
+        frequent_items_name_count_dict, deletedItems = get_frequent_one_itemsets_and_counts(transactions_db, min_sup)
+        self._sorted_frequent_items_name_count_dict = {k: v for k, v in sorted(frequent_items_name_count_dict.items(),
+                                                                               key=lambda item: item[1], reverse=True)}
+        self._sorted_items = list(self._sorted_frequent_items_name_count_dict.keys())
+        self._sorted_transactions_db = self._sort_transactions_db(transactions_db)
 
-        return root
+    def _sort_transactions_db(self, transactions_db):
+        """
+        Descending sort frequent items.
+        :param transactions_db:
+        :return:
+        """
+        _sorted_transactions_db = []
+        for transaction in transactions_db:
+            sorted_transaction = [item for item in self._sorted_items if item in transaction]
+            _sorted_transactions_db.append(sorted_transaction)
 
-    def insert_tree(self, items, node, headers):
+        return _sorted_transactions_db
 
-        val = items[0]
-        flag, child = node.getChild(val=val, resChildNode=None)
-        if flag==False: 
-            # Add new child.
-            child, boolFlag = node.addChild(val=val, counter=1)
+class TreeNode:
+    """
+    This class defines the node information in a FP tree.
+    """
+    def __init__(self, item_name, item_count, parent_node):
+        self._item_name = item_name
+        self._item_count = item_count
+        self._parent = parent_node
+        self._children = {}  # This will be an "item name - TreeNode" pairs.
+        self._node_link = None  # Link other nodes that have the same item name (for header table use)
 
-            # Link it to header structure [linked list table of pointers]
-            if headers[val] is not None:
-                current = headers[val]
-                while current.link:
-                    current = current.link
-                current.link = child
+def get_prefix_paths(node):
+    """
+    This method is used to find prefix paths of a specific node in the tree.
+    :param node: TreeNode
+    :return: list
+    """
+    if node._parent is None:  # reach top
+        return None
+
+    paths = []
+    while node is not None:
+        route = []
+        parent_node = node._parent
+        while parent_node._parent is not None:  # iteratively find parent
+            route.append(parent_node._item_name)
+            parent_node = parent_node._parent
+
+        route = route[::-1]  # reverse
+        for i in range(node._item_count):
+            paths.append(route)
+
+        node = node._node_link
+
+    return paths
+
+
+class FPTree:
+    """
+    This class defines an FPTree object used in FP Growth algorithm.
+    Will also be called to generate conditional FPTree from conditional pattern base.
+    """
+    def __init__(self, transactions_db, min_sup):
+        self._min_sup = min_sup
+        self._root = TreeNode("ROOT (NONE)", 0, None)  # Every tree should have a root of None
+        self._frequent_item_list_object = FrequentItemsList(transactions_db, min_sup)  # Get specific transactions
+
+        # _header_table is a list of 3-items dictionary.
+        # Each dictionary records frequent item name, their counts, and a pointer to the first occurrence TreeNode.
+        self._header_table = [{"item_name": key,
+                               "frequency": self._frequent_item_list_object._sorted_frequent_items_name_count_dict[key],
+                               "head": None}
+                              for key in self._frequent_item_list_object._sorted_frequent_items_name_count_dict]
+
+        self._sorted_transactions_db = self._frequent_item_list_object._sorted_transactions_db
+        self._create_tree(self._sorted_transactions_db)  # Driver to the construction process
+
+    def _create_tree(self, sorted_transactions_db):
+        for sorted_transaction in sorted_transactions_db:  # This is the "second-scan" of database.
+            self._insert_tree(sorted_transaction, self._root)
+
+    def _insert_tree(self, sorted_transaction, current_tree_node):
+        """
+        This will be a recursive method. We will insert item-by-item to the FPTree.
+        :param sorted_transaction: in a type of list.
+        :param current_tree_node: a ref to a TreeNode Object.
+        :return:
+        """
+        if len(sorted_transaction) == 0:  # finish
+            return
+
+        # Record current item info.
+        # Including index for a specific item for easily locating when we update _header_table.
+        current_item_info = [[_item_table, index] for index, _item_table in enumerate(self._header_table)
+                             if _item_table["item_name"] == sorted_transaction[0]][0]
+        current_item_name = current_item_info[0]["item_name"]
+        current_item_index = current_item_info[1]
+
+        if current_item_name in current_tree_node._children.keys():  # check if node exists already
+            current_tree_node._children[current_item_name]._item_count+=1
+        else:
+            children_name=current_item_name
+            children_node=TreeNode(item_name=current_item_name, item_count=1, parent_node=current_tree_node)
+            current_tree_node._children[children_name] = children_node
+
+            # update _header_table
+            if current_item_info[0]["head"] is None:
+                self._header_table[current_item_index]["head"] = current_tree_node._children[current_item_name]
             else:
-                headers[val] = child
-        else: # child not none --> increment counter
-            child.counter += 1
+                current_link_node = self._header_table[current_item_index]["head"]
+                target_node = current_tree_node._children[current_item_name]
 
-        left_items = items[1:]
-        if len(left_items) != 0:
-            self.insert_tree(left_items, child, headers)
+                # the same procedure as "pointing to the next" in C!
+                while current_link_node._node_link is not None:
+                    current_link_node = current_link_node._node_link
+                current_link_node._node_link = target_node
 
-        return "successfully inserted"
+        if len(sorted_transaction) > 1:  # insert next item
+            self._insert_tree(sorted_transaction=sorted_transaction[1:],
+                              current_tree_node=current_tree_node._children[current_item_name])
 
-    def isOnePathTree(self, node):
+    def get_header_table(self):
+        return self._header_table
 
-        num_children = len(node.children)
-        if num_children <= 1:
-            return True
-        elif num_children > 1:
-            return False
-        else:
-            return True and self.isOnePathTree(node.children[0])
-        return "end of return"
+    def mine_frequent_itemsets(self, parent_node=None):
+        """
+        The general method for finding frequent itemsets from FPTree.
+        :param parent_node: last node info for recursive use.
+        :return: mined results
+        """
+        if len(self._root._children) == 0:  # reach bottom
+            return None
+        results = []
+        min_sup = self._min_sup
+        reversed_header_table = self._header_table[::-1]
+        for item in reversed_header_table:
+            frequent_itemset_and_count = [set(), 0]
+            if parent_node is None:
+                frequent_itemset_and_count[0] = {item["item_name"], }  # comma means a set
+            else:
+                frequent_itemset_and_count[0] = {item["item_name"], }.union(parent_node[0])  # unite set with its parent
 
-    def zip_patterns(self, patterns):
+            frequent_itemset_and_count[1] = item["frequency"]
+            results.append(frequent_itemset_and_count)
+            cond_tree_transactions = get_prefix_paths(item["head"])
 
-        suffix = self.root.val
-        if suffix is None:
-            return patterns, len(patterns)
-        else:
-            # We are in a conditional tree.
-            new_patterns = dict()
-            for key, val in patterns.items():
-                ConcatKey = list(key) + [suffix]
-                ConcatKey = sorted(ConcatKey)
-                new_patterns[tuple(ConcatKey)] = patterns[key]
-            return new_patterns, len(new_patterns)
-        return None,0
+            cond_tree = FPTree(cond_tree_transactions, min_sup)
+            cond_tree_words = cond_tree.mine_frequent_itemsets(frequent_itemset_and_count)
+            if cond_tree_words is not None:
+                for word in cond_tree_words:
+                    results.append(word)
 
-    def generate_pattern_list(self):
+        return results
 
-        patterns = dict()
-        items = self.frequent.keys()
-        suffix = self.root.val
-        suffix_val = list()
-        # If we are in a conditional tree, the suffix is a pattern on its own.
-        if suffix is not None:
-            suffix_val = [suffix]
-            patterns[tuple([suffix])] = self.root.counter
 
-        for i in range(1, len(items) + 1):
-            for subset in combinations(items, i):
-                pattern = tuple(sorted(list(subset) + suffix_val))
-                # patterns[pattern] = min([self.frequent[x] for x in subset])
-                res = float('inf')
-                # res = int()
-                for x in subset:
-                    res = min(res, self.frequent[x])
-                patterns[pattern] = res
+def post_process_frequent_itemsets(frequent_itemsets, index2name):
+    """
+    index back to name. Store into a dictionary.
+    :param frequent_itemsets:
+    :param index2name:
+    :return:
+    """
+    final_results = dict()
+    for frequent_itemset in frequent_itemsets:
+        item_names = [index2name[key] for key in frequent_itemset[0]]
+        item_names_string = ','.join(item_names)
+        final_results[item_names_string] = frequent_itemset[1]
 
-        return patterns, len(patterns)
+    final_results = {k: v for k, v in sorted(final_results.items(), key=lambda item: item[1], reverse=True)}
+    return final_results
 
-    def mine_sub_trees(self, threshold):
+def memory_usage_psutil():
+    # return the memory usage in bytes
+    import os
+    import psutil
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss
 
-        patterns = dict()
-        mining_order = sorted(self.frequent.keys(), key=lambda x: self.frequent[x])
-
-        # Get items in tree in reverse order of occurrences.
-        for item in mining_order:
-            suffixes = list()
-            conditional_tree_input = list()
-            node = self.headers[item]
-
-            # Follow node links to get a list of all occurrences of a certain item.
-            while node:
-                # print("Debug")
-                suffixes.append(node)
-                node = node.link
-
-            # For each occurrence of the item, trace the path back to the root node.
-            for suffix in suffixes:
-                frequency = suffix.counter
-                path = list()
-                parent = suffix.parent
-
-                while parent.parent:
-                    # print("Debug")
-                    path.append(parent.val)
-                    parent = parent.parent
-
-                for i in range(frequency):
-                    conditional_tree_input.append(path)
-
-            # Now we have the input for a subtree, so construct it and grab the patterns.
-            subtree = FPTreeStructure(conditional_tree_input, threshold, item, self.frequent[item])
-            subtree_patterns,lenn = subtree.mine_patterns(threshold)
-
-            # Insert subtree patterns into main patterns dictionary.
-            for pattern in subtree_patterns.keys():
-                if pattern not in patterns:
-                    patterns[pattern] = subtree_patterns[pattern]
-                else:
-                    patterns[pattern] += subtree_patterns[pattern]
-
-        return patterns
-
-    def mine_patterns(self, threshold):
-
-        if (len(self.root.children) <=1):
-            return self.generate_pattern_list()
-        elif self.isOnePathTree(self.root):
-            return self.generate_pattern_list()
-        else:
-            return self.zip_patterns(self.mine_sub_trees(threshold))
-        return "end of return"
-
-class FP_Growth_Algo:
-    def __init__(self, dataset, min_sup_count):
-        self.dataset = dataset
-        self.min_sup_count = min_sup_count
-
-    def fpg_Algo(self):
-        # Find the frequent paterns
-        root_val = None
-        root_counter = None
-        tree = FPTreeStructure(self.dataset, self.min_sup_count, root_val, root_counter)
-        return tree.mine_patterns(self.min_sup_count)
-
-def main(dataset_path):
-
+def main(min_sup = 4170.48):
+    """
+    Driver to the program.
+    """
     print("..................FP GROWTH ALGORITHM STARTED.................")
-    start_clock = datetime.now() # algo started
     
-    getDataInfo = dataset_info.parse_transaction_dataset(dataset_path)
-    DATASET = getDataInfo[0] # Horizonatal Dataset table [Txn x Items]
-    N = len(DATASET)
-
-    min_support_cnt = float(0.08*N) # enter this in terms of count not ratio or give ratio*N
-    # min_support_cnt = int(input())
+    start_clock = time()
+    # get data and use the index for computing
+    dataset_path = "datasets/liquor_11frequent.txt"
+    name2index, index2name, transactions = get_transactions_db_from_dataset(file_path=dataset_path)
 
     print("Dataset Taken :", dataset_path)
-    print("Total dataset :", len(DATASET))
-    print("Support counter Taken :",min_support_cnt)
+    # print("Total Transactions :", len(getDataInfo[0]))
+    print("Support Count Taken :",min_sup)
 
-    FPGrowthInst = FP_Growth_Algo(DATASET, min_support_cnt)
-    freqItemSets, totalFreqItemS = FPGrowthInst.fpg_Algo()
+    # run
+    frequent_itemsets = FPTree(transactions, min_sup).mine_frequent_itemsets()
+    freqItemSets = post_process_frequent_itemsets(frequent_itemsets, index2name)
     # print(freqItemSets)
 
-    sorted_itemsets = dict()
-    for k in sorted(freqItemSets, key=len, reverse=True):
-        sorted_itemsets[k] = freqItemSets[k]
-    # print(sorted_itemsets)
+    # for item, sup in freqItemSets.items():
+        # print(item,"---",sup)
 
     kfreq = dict()
     lengths = set()
     for key in sorted(freqItemSets.keys()):
-        lengths.add(len(key))
-        kfreq.setdefault(len(key), list()).append({key,freqItemSets[key]})
+        lengths.add(len(key.split(',')))
+        kfreq.setdefault(len(key.split(',')), list()).append({key,freqItemSets[key]})
 
     # uncomment below line to print frequent items 
     # print(kfreq)
-    
-    # uncomment below lines to print frequent items k-wise 
-    # for k in lengths:
-    #     print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(kfreq[k]), "---> ")
-    #     # print(kfreq[k])
-    #     print(kfreq[k])
-    #     print()
-    
-    finish_clock = datetime.now() # algo started
-    print("Time taken: ",round((finish_clock - start_clock).total_seconds(), 2), " seconds")
 
-# For Testing Purpose
-if __name__=="__main__":
-    datasets_dirs = ["datasets/test.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
-                 "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
-    main(datasets_dirs[1])
+    # uncomment below lines to print frequent items k-wise 
+    for k in lengths:
+        print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(kfreq[k]), "---> ")
+        print(kfreq[k])
+        print()
+
+    finish_clock = time()
+    print("Time Taken: " + "%.4f" % (finish_clock - start_clock) + " seconds")
+
+    mem_usage = memory_usage_psutil()
+    print("Memory used: ",float(mem_usage/(1024*1024))," MB")
+
+if __name__ == "__main__":
+    main()

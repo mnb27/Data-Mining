@@ -4,4 +4,5 @@ Support counter Taken : 9992.2
 Count of 1-Frequent Itemsets:  7 --->
 [{('146',), 10115}, {('218',), 12108}, {('369',), 13903}, {11536, ('461',)}, {10049, ('693',)}, {('767',), 13724}, {('830',), 10053}]
 
-Time taken:  189.12  seconds
+Time Taken: 3.7696 seconds
+Memory used:  82.0  MB

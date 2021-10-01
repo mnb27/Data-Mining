@@ -83,6 +83,12 @@ def Eclat_Algo(data, printIT=False):
         Freq_itemsets.append(itemset_length[i])
     return Freq_itemsets
         
+def memory_usage_psutil():
+    # return the memory usage in bytes
+    import os
+    import psutil
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss
 
 # For Testing Purpose
 def main(dataset_path):
@@ -100,7 +106,7 @@ def main(dataset_path):
     M = len(getDataInfo[0])
     # float(0.02*len(getDataInfo[0]))
 
-    min_support_cnt = 2 # enter this in terms of count not ratio or give ratio*M
+    min_support_cnt = 4170.48 # enter this in terms of count not ratio or give ratio*M
     # min_support_cnt = int(input())
 
     freqItemSets = Eclat_Algo(DATASET, False)
@@ -116,15 +122,18 @@ def main(dataset_path):
     k = 1
     for k_freq in freqItemSets:
         print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(k_freq), "---> ")
-        print(k_freq)
+        # print(k_freq)
         k = k + 1
         print()
 
     finish_clock = datetime.now() # algo started
     print("Time taken: ",round((finish_clock - start_clock).total_seconds(), 2), " seconds")
 
+    mem_usage = memory_usage_psutil()
+    print("Memory used: ",float(mem_usage/(1024*1024))," MB")
+
 # For Testing Purpose
 if __name__ == "__main__":
     datasets_dirs = ["datasets/test.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
                  "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
-    main(datasets_dirs[0])
+    main(datasets_dirs[2])
