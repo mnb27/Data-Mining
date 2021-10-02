@@ -51,7 +51,7 @@ def get_frequent_one_itemsets_and_counts(transactions_db, min_sup):
                 itemSet[item] += 1
 
     for key, val in list(itemSet.items()):
-        if itemSet[key] >= min_sup:
+        if float(itemSet[key]) >= float(min_sup):
             continue
         else:
             delItemSets.append(itemSet[key])
@@ -241,7 +241,7 @@ def memory_usage_psutil():
     process = psutil.Process(os.getpid())
     return process.memory_info().rss
 
-def main(min_sup = 4170.48):
+def main(dataset, min_sup = 319.6):
     """
     Driver to the program.
     """
@@ -249,10 +249,10 @@ def main(min_sup = 4170.48):
     
     start_clock = time()
     # get data and use the index for computing
-    dataset_path = "datasets/liquor_11frequent.txt"
-    name2index, index2name, transactions = get_transactions_db_from_dataset(file_path=dataset_path)
+    # dataset_path = "datasets/liquor_11frequent.txt"
+    name2index, index2name, transactions = get_transactions_db_from_dataset(file_path=dataset)
 
-    print("Dataset Taken :", dataset_path)
+    print("Dataset Taken :", dataset)
     # print("Total Transactions :", len(getDataInfo[0]))
     print("Support Count Taken :",min_sup)
 
@@ -276,7 +276,7 @@ def main(min_sup = 4170.48):
     # uncomment below lines to print frequent items k-wise 
     for k in lengths:
         print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(kfreq[k]), "---> ")
-        print(kfreq[k])
+        # print(kfreq[k])
         print()
 
     finish_clock = time()
@@ -286,4 +286,6 @@ def main(min_sup = 4170.48):
     print("Memory used: ",float(mem_usage/(1024*1024))," MB")
 
 if __name__ == "__main__":
-    main()
+    datasets_dirs = ["datasets/test.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
+                 "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
+    main(datasets_dirs[1])

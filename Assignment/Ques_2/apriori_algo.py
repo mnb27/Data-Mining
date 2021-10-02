@@ -140,7 +140,7 @@ def main(dataset_path):
 
     N = len(DATASET)
 
-    min_support_cnt = 4170.48   # enter this in terms of count not ratio or give ratio*N
+    min_support_cnt = 521.31   # enter this in terms of count not ratio or give ratio*N
     # min_support_cnt = int(input())
 
     # start_clock = datetime.now() # algo started

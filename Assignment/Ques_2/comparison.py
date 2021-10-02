@@ -1,12 +1,13 @@
-import a
 import eclat_algo
 import FP_growth_algo
+import apriori_algo
 from datetime import datetime
 import matplotlib.pyplot as plt
 
 
 def compare_algos_given_min_sup(dataset, min_sup, print_result):
-
+    datasets_dirs = ["datasets/test.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
+                 "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
 
     N = len(dataset)
 
@@ -21,12 +22,12 @@ def compare_algos_given_min_sup(dataset, min_sup, print_result):
             print('Algorithm : ', algo)
         time_start = datetime.now()
         if algo == 'Apriori':
-            AprioriInst = a.Apriori(dataset[0], N, min_sup)
-            freqItemSets = AprioriInst.Apriori_Algo(min_sup/N)
+            AprioriInst = apriori_algo.Apriori(dataset[0], N, min_sup)
+            freqItemSets, lvl = AprioriInst.Apriori_Algo()
         elif algo == 'FP_growth':
-            freqItemSets, totalFreqItemS = FP_growth_algo.find_frequent_patterns(dataset[0], minSup)
+            freqItemSets, totalFreqItemS = FP_growth_algo.main(datasets_dirs[0], minSup)
         elif algo == 'Eclat':
-            freqItemSets, time_end = eclat_algo.Eclat_Algo(dataset[1])
+            freqItemSets = eclat_algo.Eclat_Algo(dataset[1], False)
         time_end = datetime.now()
         if print_result == True:
             print('time taken : ' + str( round((time_end-time_start).total_seconds(), 2) ) + ' seconds' )

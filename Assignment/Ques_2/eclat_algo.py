@@ -106,7 +106,7 @@ def main(dataset_path):
     M = len(getDataInfo[0])
     # float(0.02*len(getDataInfo[0]))
 
-    min_support_cnt = 4170.48 # enter this in terms of count not ratio or give ratio*M
+    min_support_cnt = 521.31 # enter this in terms of count not ratio or give ratio*M
     # min_support_cnt = int(input())
 
     freqItemSets = Eclat_Algo(DATASET, False)
@@ -122,7 +122,7 @@ def main(dataset_path):
     k = 1
     for k_freq in freqItemSets:
         print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(k_freq), "---> ")
-        # print(k_freq)
+        print(k_freq)
         k = k + 1
         print()
 
