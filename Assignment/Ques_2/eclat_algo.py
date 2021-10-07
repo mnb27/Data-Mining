@@ -3,7 +3,7 @@
 Implementation of Eclat Algorithm with D-Eclat optimization as given in Zaki's Book
 """
 
-from datetime import datetime # used to calculate program execution time
+from time import time # used to calculate program execution time
 from itertools import combinations # used to generate subset combinations of given set
 import dataset_info # lib implemented for parsing data
 
@@ -69,7 +69,7 @@ def Eclat_Algo(data, printIT=False):
     if(printIT):
         print("Diffset: ",d)
         print("P: ",P," and P_dash : ",P_dash)
-    DEclat(P, P_dash, printIT) # Main D-Eclat algo
+    DEclat(P, P_dash, printIT) # core D-Eclat Algorithm
 
     itemset_length = dict()
     for i in Freq:
@@ -96,7 +96,6 @@ def memory_usage_psutil():
 def main(dataset_path):
 
     print("..................ECLAT ALGORITHM STARTED.................")
-    start_clock = datetime.now() # algo started
     
     global DATASET
     global N
@@ -106,11 +105,11 @@ def main(dataset_path):
     DATASET = getDataInfo[1]  # Vertical Dataset table [Txn x Items]
     N = len(DATASET) # vertical [rows count]
     M = len(getDataInfo[0])
-    # float(0.02*len(getDataInfo[0]))
 
     min_support_cnt = 4170.48 # enter this in terms of count not ratio or give ratio*M
-    # min_support_cnt = int(input())
+    # min_support_cnt = float(input())
 
+    start_clock = time() # algo started
     freqItemSets = Eclat_Algo(DATASET, False)
 
     # uncomment below line to print frequent items 
@@ -120,16 +119,27 @@ def main(dataset_path):
     print("Total Transactions :", len(getDataInfo[0]))
     print("Support Count Taken :",min_support_cnt)
 
-    # uncomment below lines to print frequent items k-wise 
-    k = 1
-    for k_freq in freqItemSets:
-        print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(k_freq), "---> ")
-        print(k_freq)
-        k = k + 1
+    temp = list()
+    for i in freqItemSets:
+        for j in i:
+            temp.append(j)
+
+    kfreq = dict()
+    lengths = set()
+    for item in temp:
+        Size = len(list(list(item.keys())[0]))
+        lengths.add(Size)
+        kfreq.setdefault(Size, list()).append(list(list(item.keys())[0]))
+        # kfreq.setdefault(Size, list()).append(list(list(item.keys()))) # uncomment to append itemsets as well as supCount   
+
+    # # uncomment below lines to print frequent items k-wise 
+    for k in lengths:
+        print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(kfreq[k]), "---> ")
+        print(kfreq[k])
         print()
 
-    finish_clock = datetime.now() # algo started
-    print("Time taken: ",round((finish_clock - start_clock).total_seconds(), 2), " seconds")
+    finish_clock = time() # algo started
+    print("Time Taken: " + "%.4f" % (finish_clock - start_clock) + " seconds")
 
     mem_usage = memory_usage_psutil()
     print("Memory used: ",float(mem_usage/(1024*1024))," MB")
