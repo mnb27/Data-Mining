@@ -32,7 +32,9 @@ def DEclat(P, P_dash, printIT=False):
         P_temp = dict()
         P_dash_temp = list()
         for Xb in P_dash:
-            if P_dash.index(Xb) > P_dash.index(Xa):
+            if P_dash.index(Xb) <= P_dash.index(Xa):
+                continue
+            else:
                 temp = set(Xa).union(set(Xb))
                 Xab = list(combinations(temp, len(temp)))[0]
                 d[Xab] = (d[Xb]).difference(d[Xa])
@@ -106,7 +108,7 @@ def main(dataset_path):
     M = len(getDataInfo[0])
     # float(0.02*len(getDataInfo[0]))
 
-    min_support_cnt = 521.31 # enter this in terms of count not ratio or give ratio*M
+    min_support_cnt = 4170.48 # enter this in terms of count not ratio or give ratio*M
     # min_support_cnt = int(input())
 
     freqItemSets = Eclat_Algo(DATASET, False)

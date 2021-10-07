@@ -140,7 +140,7 @@ def main(dataset_path):
 
     N = len(DATASET)
 
-    min_support_cnt = 521.31   # enter this in terms of count not ratio or give ratio*N
+    min_support_cnt = 3036.2   # enter this in terms of count not ratio or give ratio*N
     # min_support_cnt = int(input())
 
     # start_clock = datetime.now() # algo started
@@ -178,4 +178,4 @@ def main(dataset_path):
 if __name__ == "__main__":
     datasets_dirs = ["datasets/test.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
                  "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
-    main(datasets_dirs[2])
+    main(datasets_dirs[1])

@@ -1,24 +1,24 @@
 from time import time
+import dataset_info
 
 def get_transactions_db_from_dataset(file_path):
-    """
-    Get data from csv file with a specific length. And redirect names to indices for less computing in the algorithm.
-    :param csv_file_path: string
-    :param data_length: int. no more than 9835.
-    :return: name2index, index2name, transactions
-    """
-    transactions_strings = []
+    """And redirect names to indices for less computing in the algorithm"""
+    getData = dataset_info.parse_transaction_dataset(file_path)
+    # transactions_strings = []
     transactions = []
     name2index = dict()
     current_count = 0
 
-    fh = open(file_path, "r")
-    Lines = fh.readlines()
-    for st in Lines:
-        st = st.strip()
-        transactions_strings.append(st)
+    # fh = open(file_path, "r")
+    # Lines = fh.readlines()
+    # for st in Lines:
+    #     st = st.strip()
+    #     transactions_strings.append(st)
 
-    transactions_data = [transaction_string.split(" ") for transaction_string in transactions_strings]
+    # transactions_data = [transaction_string.split(" ") for transaction_string in transactions_strings]
+
+    transactions_data = getData[0]
+    print("hola",transactions_data)
 
     for transaction in transactions_data:
         for item in transaction:
@@ -31,7 +31,12 @@ def get_transactions_db_from_dataset(file_path):
         itemset = [name2index[item] for item in transaction]
         transactions.append(itemset)
 
-    return name2index, index2name, transactions
+    # print(name2index)
+    # print()
+    # print(index2name)
+    # print()
+    # print(transactions)
+    return index2name, transactions, len(transactions_data)
 
 
 def get_frequent_one_itemsets_and_counts(transactions_db, min_sup):
@@ -241,22 +246,15 @@ def memory_usage_psutil():
     process = psutil.Process(os.getpid())
     return process.memory_info().rss
 
-def main(dataset, min_sup = 319.6):
-    """
-    Driver to the program.
-    """
+def main(dataset, min_sup =2):
     print("..................FP GROWTH ALGORITHM STARTED.................")
-    
     start_clock = time()
-    # get data and use the index for computing
-    # dataset_path = "datasets/liquor_11frequent.txt"
-    name2index, index2name, transactions = get_transactions_db_from_dataset(file_path=dataset)
+    index2name, transactions, N = get_transactions_db_from_dataset(file_path=dataset)
 
     print("Dataset Taken :", dataset)
-    # print("Total Transactions :", len(getDataInfo[0]))
+    print("Total Transactions :", N)
     print("Support Count Taken :",min_sup)
 
-    # run
     frequent_itemsets = FPTree(transactions, min_sup).mine_frequent_itemsets()
     freqItemSets = post_process_frequent_itemsets(frequent_itemsets, index2name)
     # print(freqItemSets)
@@ -268,7 +266,8 @@ def main(dataset, min_sup = 319.6):
     lengths = set()
     for key in sorted(freqItemSets.keys()):
         lengths.add(len(key.split(',')))
-        kfreq.setdefault(len(key.split(',')), list()).append({key,freqItemSets[key]})
+        # kfreq.setdefault(len(key.split(',')), list()).append({key,freqItemSets[key]})
+        kfreq.setdefault(len(key.split(',')), list()).append(key)
 
     # uncomment below line to print frequent items 
     # print(kfreq)
@@ -276,7 +275,7 @@ def main(dataset, min_sup = 319.6):
     # uncomment below lines to print frequent items k-wise 
     for k in lengths:
         print("Count of " + str(k)+"-Frequent Itemsets"+': ',len(kfreq[k]), "---> ")
-        # print(kfreq[k])
+        print(kfreq[k])
         print()
 
     finish_clock = time()
@@ -288,4 +287,4 @@ def main(dataset, min_sup = 319.6):
 if __name__ == "__main__":
     datasets_dirs = ["datasets/test.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
                  "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
-    main(datasets_dirs[1])
+    main(datasets_dirs[0])

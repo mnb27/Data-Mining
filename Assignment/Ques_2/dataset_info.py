@@ -47,10 +47,12 @@ def parse_transaction_dataset(dataset_path):
     min_sup = min(vertical_row_w)
 
     for key in vertical_database.keys():
-        if len(vertical_database[key]) in sup_i.keys():
-            sup_i[len(vertical_database[key])].append(key)
+        M = len(vertical_database[key])
+        if M not in sup_i.keys():
+            sup_i[M] = [key]
+
         else:
-            sup_i[len(vertical_database[key])] = [key]
+            sup_i[M].append(key)
     # print("hola",sup_i)
 
     max_sup_items = sup_i[max_sup]
@@ -94,4 +96,4 @@ def main(dataset_path):
 if __name__ == "__main__":
     datasets_dirs = ["datasets/test.txt", "datasets/chess.txt", "datasets/liquor_11frequent.txt", 
                  "datasets/t20i6d100k.txt", "datasets/BMS2.txt"]
-    main(datasets_dirs[1])
+    main(datasets_dirs[0])
