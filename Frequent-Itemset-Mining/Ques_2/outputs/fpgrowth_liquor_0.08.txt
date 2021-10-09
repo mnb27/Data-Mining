@@ -1,0 +1,11 @@
+Dataset Taken : datasets/liquor_11frequent.txt
+Total Transactions : 52131
+Min Support ratio : 0.08
+Count of 1-Frequent Itemsets:  13 --->
+[{'27102'}, {'43338'}, {'11774'}, {'64866'}, {'37996'}, {'36904'}, {'64858'}, {'43336'}, {'36306'}, {'35918'}, {'11776'}, {'36308'}, {'11788'}]
+
+Count of 2-Frequent Itemsets:  4 --->
+[{'36308', '36306'}, {'35918', '11788'}, {'11776', '11788'}, {'36308', '11788'}]
+
+Time Taken: 1.1585 seconds
+Memory used:  93.265625  MB

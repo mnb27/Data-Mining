@@ -1,0 +1,2 @@
+Memory limit exceeded on my laptop.
+Although ran succesfully on my friend's high end laptop.

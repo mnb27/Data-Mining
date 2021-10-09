@@ -1,8 +1,0 @@
-Dataset Taken : datasets/t20i6d100k.txt
-Total Transactions : 99922
-Support Count Taken : 9992.2
-Count of 1-Frequent Itemsets:  7 --->
-[{('146',): 10115}, {('218',): 12108}, {('369',): 13903}, {('461',): 11536}, {('693',): 10049}, {('767',): 13725}, {('830',): 10053}]
-
-Time taken:  2712.29  seconds
-Memory used:  277.8359375  MB

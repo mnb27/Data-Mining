@@ -1,0 +1,8 @@
+Dataset Taken : datasets/t20i6d100k.txt
+Total Transactions : 99922
+Min Support ratio : 0.1
+Count of 1-Frequent Itemsets:  7 ---> 
+[['767'], ['461'], ['830'], ['693'], ['369'], ['218'], ['146']]
+
+Time Taken: 2.0266 seconds
+Memory used:  314.86328125  MB
