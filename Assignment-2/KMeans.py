@@ -3,7 +3,7 @@ import random
 import math
 from datetime import datetime
 import matplotlib.pyplot as plt
-import pandas as pd
+
 
 class KMeans_class:
 	def __init__(self, data):
@@ -164,17 +164,3 @@ class KMeans_class:
 		self.K = K
 		centroid, assigned_clusters, points_in_cluster, time = self.K_Means_unlabelled()
 		return self.classification_accuracy(assigned_clusters)
-
-def main():
-    df = pd.read_csv('adult.csv')
-    data = df.to_numpy()
-    # create KMeans object
-    obj = KMeans_class(data)
-    classification_accuracy = obj.run_on_K(10) # optimal K = 10
-    print("Classification Accuracy: ", classification_accuracy)
-
-    # find optimal K
-    # obj.find_best_K()
-
-if __name__ == "__main__":
-    main()
