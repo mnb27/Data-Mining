@@ -47,7 +47,8 @@ class KMeans_class:
 			points = np.array(points) # N_j * D
 			sum_x_T_x = 0
 			for point in points:
-				sum_x_T_x += np.linalg.norm(point - centroids[cluster_no]) # 1*1
+				# print("Debug --- ",point,"---",centroids[cluster_no])
+				sum_x_T_x += np.linalg.norm(point[:-1] - centroids[cluster_no][:-1]) # 1*1
 			sse += sum_x_T_x
 		return sse
 
@@ -119,10 +120,9 @@ def main():
     # print(data[:, 0:data.shape[1]][:,0:5])
     # print()
     # print(data[:, data.shape[1] - 1])
-    
-    
+
     obj = KMeans_class(data)
-    res = obj.run_on_K(5)
+    res = obj.run_on_K(10)
     
     # print("Centroid: ",res[0])
     # print()
@@ -131,7 +131,7 @@ def main():
     # print("Points in cluster: ",res[2])
     # print()
     # print(res[4])
-    
+    print("SSE: ",obj.calculate_sse(res[2]))
     label = res[1]
     gender = res[4]
 
@@ -187,7 +187,7 @@ def main():
         if fartestDistFemalePoint!=0.0: p.append(fartestDistMalePoint/fartestDistFemalePoint)
         else: p.append(float('inf'))
     print("P array: ",p)
-    maxD = max(p)
+    maxD = min(p)
     print("MaxD: ",maxD)
     # print(clusterCentroids[:,0:5])
     # print(pointsInClusterwithLabel[0][1][5])  
