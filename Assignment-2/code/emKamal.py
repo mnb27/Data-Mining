@@ -1,8 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from scipy.stats import multivariate_normal
 from mpl_toolkits.mplot3d import Axes3D
+
+from sklearn.decomposition import PCA
 
 
 
@@ -171,3 +174,30 @@ class EM_class:
                 print("itrations taken : ", iteration+1)
                 break
         return mu, sigma, prob_c
+
+def main():
+    df = pd.read_csv('spiral_old.csv')
+    data = df.to_numpy()
+
+    # apply PCA
+    pca = PCA(n_components=2)
+    pca_data = pca.fit_transform(data[:,:-1])
+    label = data[:,-1]
+
+    #plot data
+    # fig = plt.figure(figsize=(8,6))
+    # plt.scatter(pca_data[:,0][label=='Iris-setosa'],pca_data[:,1][label=='Iris-setosa'],color='b',marker='o',cmap='YlGnBu')
+    # plt.scatter(pca_data[:,0][label=='Iris-versicolor'],pca_data[:,1][label=='Iris-versicolor'],color='g',marker='o',cmap='YlGnBu')
+    # plt.scatter(pca_data[:,0][label=='Iris-virginica'],pca_data[:,1][label=='Iris-virginica'],color='r',marker='o',cmap='YlGnBu')
+    # plt.xlabel('u0')
+    # plt.ylabel('u1')
+    # plt.title('pca iris dataset')
+    # plt.legend(['Iris-setosa', 'Iris-versicolor', 'Iris-virginica'])
+    # plt.show()
+
+    obj = EM_class(data=pca_data, K=2, epsilon=0.000001, colors=['orange', 'tab:green', 'tab:cyan'])
+    print_plot_for_iterations = [0,10,20,30,40,50,60,70]
+    mu, sigma, prob_c = obj.EM_algo(print_plot_for_iterations)
+
+if __name__ == "__main__":
+    main()

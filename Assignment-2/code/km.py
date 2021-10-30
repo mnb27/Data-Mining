@@ -3,7 +3,7 @@ import random
 import math
 from datetime import datetime
 import matplotlib.pyplot as plt
-
+import pandas as pd
 
 class KMeans_class:
 	def __init__(self, data):
@@ -11,7 +11,6 @@ class KMeans_class:
 		self.labels = data[:, data.shape[1] - 1] # n*1
 		self.K = 2
 		self.cluster_label = {}
-
 
 	def random_initialiser(self):
 		# K : no. of clusters
@@ -52,37 +51,6 @@ class KMeans_class:
 		return sse
 
 
-	def classification_accuracy(self, assigned_clusters):
-		cluster_labels_class_wise = {} # len = K, each element is a dictionary containing label:support
-		for i in range(self.data.shape[0]):
-			label = self.labels[i]
-			assigned_cluster = assigned_clusters[i]
-			if assigned_cluster not in cluster_labels_class_wise.keys():
-				cluster_labels_class_wise[assigned_cluster] = {}
-				cluster_labels_class_wise[assigned_cluster][label] = 1
-			else:
-				if label not in cluster_labels_class_wise[assigned_cluster].keys():
-					cluster_labels_class_wise[assigned_cluster][label] = 1
-				else:
-					cluster_labels_class_wise[assigned_cluster][label] += 1
-		#print(cluster_labels_class_wise)
-		for cluster_no in cluster_labels_class_wise.keys():
-			majority = 0
-			for label in cluster_labels_class_wise[cluster_no].keys():
-				if majority <= cluster_labels_class_wise[cluster_no][label]:
-					self.cluster_label[cluster_no] = label
-					majority = cluster_labels_class_wise[cluster_no][label]
-		misclassified = 0
-		for i in range(self.data.shape[0]):
-			label = self.labels[i]
-			assigned_cluster = assigned_clusters[i]
-			cluster_class = self.cluster_label[assigned_cluster]
-			if not (label == cluster_class):
-				misclassified += 1
-		return round( ( (self.data.shape[0]-misclassified)*100 / (self.data.shape[0])), 2 )
-
-
-
 	def find_closest_centroid(self, distance_from_centroid):
 		points_in_cluster = {} # len = K
 		assigned_clusters = [] # len = n
@@ -93,7 +61,8 @@ class KMeans_class:
 		for i in range( self.K ):
 			points_in_cluster[i] = []
 		for i in assigned_clusters:
-			points_in_cluster[i].append(self.data[z]) # data[z] is not list, it's 1-D array
+			points_in_cluster[i].append(self.dataa[z]) # data[z] is not list, it's 1-D array
+			# points_in_cluster[i].append(self.data[z]) # data[z] is not list, it's 1-D array
 			z += 1
 		#print(assigned_clusters, points_in_cluster)
 		return assigned_clusters, points_in_cluster
@@ -134,33 +103,76 @@ class KMeans_class:
 		time_taken = round((end-start).total_seconds(), 2)
 		return best_centroid, best_assigned_clusters, best_points_in_cluster, time_taken
 
-
-	def find_best_K(self):
-		fig = plt.figure(figsize=(20,5))
-		plt1 = fig.add_subplot(121) 
-		plt2 = fig.add_subplot(122)
-		sse = []
-		time_taken = []
-		k_values = []
-		for K in range(1, 16):
-			self.K = K
-			centroid, assigned_clusters, points_in_cluster, time = self.K_Means_unlabelled()
-			sse.append(self.calculate_sse(points_in_cluster))
-			time_taken.append(time)
-			k_values.append(self.K)
-		#print(k_values, time_taken, sse)      
-		plt1.plot(k_values, time_taken)
-		plt1.set_xlabel('K(no. of clusters)') 
-		plt1.set_ylabel('time taken in seconds') 
-		plt1.set_title('Time taken vs number of clusters') 
-		plt2.plot(k_values, sse)
-		plt2.set_xlabel('K(no. of clusters)') 
-		plt2.set_ylabel('sse') 
-		plt2.set_title('sse vs number of clusters')
-		plt.show() 
-
-
 	def run_on_K(self, K):
 		self.K = K
 		centroid, assigned_clusters, points_in_cluster, time = self.K_Means_unlabelled()
-		return self.classification_accuracy(assigned_clusters)
+		return centroid, assigned_clusters, points_in_cluster, time, list(self.labels)
+
+def main():
+    df = pd.read_csv('test.csv')
+    data = df.to_numpy()
+    # print("DATA: ", data)
+    # print()
+    # print(data[:, 0:data.shape[1]])
+    print(data[:, 0:data.shape[1]][:,0:5])
+    # print()
+    # print(data[:, data.shape[1] - 1])
+    
+    
+    # obj = KMeans_class(data)
+    # res = obj.run_on_K(5)
+    
+    # print("Centroid: ",res[0])
+    # print()
+    # print("Assigned Clusters: ",res[1])
+    # print()
+    # print("Points in cluster: ",res[2])
+    # print()
+    # print(res[4])
+    '''
+    label = res[1]
+    gender = res[4]
+
+    #### GROUP FAIRNESS NOTION
+    freqMale = {}
+    freqFemale = {}
+    for item in set(label):
+        freqMale[item] = 0
+        freqFemale[item] = 0
+
+    for i in range(len(label)):
+        item = label[i]
+        if gender[i]==1.0:
+            if (item in freqMale):
+                freqMale[item] += 1
+            else:
+                freqMale[item] = 1
+        else :
+            if (item in freqFemale):
+                freqFemale[item] += 1
+            else:
+                freqFemale[item] = 1
+
+    ratioInEachCluster = list()
+    for id in list(set(label)):
+        a = freqMale[id]
+        b = freqFemale[id]
+        if(b!=0): ratioInEachCluster.append(a/b)
+        else: ratioInEachCluster.append(float('inf'))
+        # print(id," --- ",freqFemale[id]," --- ",freqMale[id])
+        # print()
+    print(ratioInEachCluster)
+    balance = min(ratioInEachCluster)
+    print("Balance: ",balance)
+
+    ### Individual fairness notion
+    clusterCentroids = res[0]
+    pointsInCluster = res[2]
+    for id in range(5):
+        # print(id," --- ", pointsInCluster[id])
+        for point in pointsInCluster[id]:
+            print(obj.dist(clusterCentroids[id], point))  
+    '''
+
+if __name__ == "__main__":
+    main()
