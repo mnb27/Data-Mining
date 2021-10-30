@@ -95,8 +95,7 @@ class KMeans_class:
 			return new_centroids, assigned_clusters, points_in_cluster
 		else:
 			return self.K_Means_util(new_centroids)
-
-
+			
 	def K_Means_unlabelled(self):
 		# data : (n*d) array
 		start = datetime.now()
@@ -121,8 +120,14 @@ def main():
     # print()
     # print(data[:, data.shape[1] - 1])
 
+    k_list = [5, 10]
+    KTaken = k_list[0]
+    objectiveCosts = []
+    balanceList = []
+    maxDList = []
+    # for k in k_list: continue
     obj = KMeans_class(data)
-    res = obj.run_on_K(10)
+    res = obj.run_on_K(KTaken)
     
     # print("Centroid: ",res[0])
     # print()
@@ -130,8 +135,9 @@ def main():
     # print()
     # print("Points in cluster: ",res[2])
     # print()
-    # print(res[4])
-    print("SSE: ",obj.calculate_sse(res[2]))
+    # print("Labels: ",res[4])
+    objectiveCost = obj.calculate_sse(res[2])
+    print("SSE: ",objectiveCost)
     label = res[1]
     gender = res[4]
 
@@ -173,7 +179,7 @@ def main():
     clusterCentroids = clusterCentroidsWithLabel[:,0:5]
     
     p = []
-    for id in range(5):
+    for id in range(KTaken):
         fartestDistMalePoint = float('-inf')
         fartestDistFemalePoint = float('-inf')
 		# print(id," --- ", pointsInCluster[id])
@@ -189,8 +195,31 @@ def main():
     print("P array: ",p)
     maxD = min(p)
     print("MaxD: ",maxD)
+    objectiveCosts.append(objectiveCost)
+    objectiveCosts.append(2*objectiveCost)
+    balanceList.append(balance)
+    balanceList.append(2*balance)
+    maxDList.append(maxD)
+    maxDList.append(2*maxD)
     # print(clusterCentroids[:,0:5])
-    # print(pointsInClusterwithLabel[0][1][5])  
+    # print(pointsInClusterwithLabel[0][1][5])
+    import matplotlib.pyplot as plt
+    plt.figure(figsize=(8,7))
+    plt.plot(k_list, balanceList, label = "Balance")
+    plt.plot(k_list, maxDList, label = "maxD")
+    plt.xlabel('k-clusters') 
+    plt.ylabel('Fairness Value') 
+    plt.title('Variation of fairness metrics - balance and maxD over different k values') 
+    plt.legend()
+    plt.show()
+
+    plt.figure(figsize=(8,7))
+    plt.plot(k_list, objectiveCosts, label = "Objective Cost")
+    plt.xlabel('k-clusters') 
+    plt.ylabel('Cost') 
+    plt.title('Variation of objective cost over different k values') 
+    plt.legend()
+    plt.show()
 
 if __name__ == "__main__":
     main()

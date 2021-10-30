@@ -148,7 +148,7 @@ def read(file_path):
         ds =  data.iloc[:,2:]
         gt = data.iloc[:,1]
 
-    elif file_path=='adult.csv':
+    elif file_path=='adult.csv' or file_path=='test.csv':
         data = pd.read_csv(file_path,sep=',', header=None, engine='python')
         data = data.apply(pd.to_numeric, errors='coerce')
         ds =  data.iloc[1:,0:5]
@@ -178,6 +178,7 @@ def visualization(data,labels,title,axis):
     plt.show()
     return
 
+# import pca as mypca
 def visualize(dataset, labels, title):
     # pca_res = mypca.pca(dataset.to_numpy())
     visualization(dataset.to_numpy(), labels, title, 'PC')
@@ -187,12 +188,17 @@ def main():
     dataset1 =  'spiral_old.csv'
     dataset2 = 'spiral.csv'
     dataset3 = 'adult.csv'
+    dataset4 = 'test.csv'
     dataset, ground_truth = read(dataset2)
+    # print(dataset)
+    # print(ground_truth)
     visualize(dataset, ground_truth, 'groundtruth')
 
     # GMM clustering
     k_clusters = 2
     GMM_res, GMM_centroids = GMM_clustering(dataset, k_clusters)
+    # print("GMM Result: ",GMM_res)
+    # print("Centroids: ", GMM_centroids)
     print('GMM: k = {}'.format(k_clusters))
     visualize(dataset, GMM_res, 'GMM')
 

@@ -100,7 +100,7 @@ def main():
     dataset1 =  'spiral_old.csv'
     dataset2 = 'spiral.csv'
     dataset3 = 'adult.csv'
-    dataset, ground_truth = read(dataset1)
+    dataset, ground_truth = read(dataset2)
     visualize(dataset, ground_truth, 'groundtruth')
 
     # DBSCAN
