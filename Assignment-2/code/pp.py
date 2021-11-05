@@ -111,115 +111,116 @@ class KMeans_class:
 		return centroid, assigned_clusters, points_in_cluster, time, list(self.labels)
 
 def main():
-    df = pd.read_csv('adult.csv')
-    data = df.to_numpy()
-    # print("DATA: ", data)
-    # print()
-    # print(data[:, 0:data.shape[1]])
-    # print(data[:, 0:data.shape[1]][:,0:5])
-    # print()
-    # print(data[:, data.shape[1] - 1])
+	# df = pd.read_csv('adult.csv')
+	df = pd.read_csv('test.csv')
+	data = df.to_numpy()
+	# print("DATA: ", data)
+	# print()
+	# print(data[:, 0:data.shape[1]])
+	# print(data[:, 0:data.shape[1]][:,0:5])
+	# print()
+	# print(data[:, data.shape[1] - 1])
 
-    k_list = [5, 10]
-    KTaken = k_list[0]
-    objectiveCosts = []
-    balanceList = []
-    maxDList = []
-    # for k in k_list: continue
-    obj = KMeans_class(data)
-    res = obj.run_on_K(KTaken)
-    
-    # print("Centroid: ",res[0])
-    # print()
-    # print("Assigned Clusters: ",res[1])
-    # print()
-    # print("Points in cluster: ",res[2])
-    # print()
-    # print("Labels: ",res[4])
-    objectiveCost = obj.calculate_sse(res[2])
-    print("SSE: ",objectiveCost)
-    label = res[1]
-    gender = res[4]
-
-    #### GROUP FAIRNESS NOTION
-    freqMale = {}
-    freqFemale = {}
-    for item in set(label):
-        freqMale[item] = 0
-        freqFemale[item] = 0
-
-    for i in range(len(label)):
-        item = label[i]
-        if gender[i]==1.0:
-            if (item in freqMale):
-                freqMale[item] += 1
-            else:
-                freqMale[item] = 1
-        else :
-            if (item in freqFemale):
-                freqFemale[item] += 1
-            else:
-                freqFemale[item] = 1
-
-    ratioInEachCluster = list()
-    for id in list(set(label)):
-        a = freqMale[id]
-        b = freqFemale[id]
-        if(b!=0): ratioInEachCluster.append(a/b)
-        else: ratioInEachCluster.append(float('inf'))
-        # print(id," --- ",freqFemale[id]," --- ",freqMale[id])
-        # print()
-    print("Ratio array: ",ratioInEachCluster)
-    balance = min(ratioInEachCluster)
-    print("Balance: ",balance)
+	k_list = [2, 10]
+	KTaken = k_list[0]
+	objectiveCosts = []
+	balanceList = []
+	maxDList = []
+	# for k in k_list: continue
+	obj = KMeans_class(data)
+	res = obj.run_on_K(KTaken)
 	
-    ### Individual fairness notion
-    clusterCentroidsWithLabel = res[0]
-    pointsInClusterwithLabel = res[2]
-    clusterCentroids = clusterCentroidsWithLabel[:,0:5]
-    
-    p = []
-    for id in range(KTaken):
-        fartestDistMalePoint = float('-inf')
-        fartestDistFemalePoint = float('-inf')
-		# print(id," --- ", pointsInCluster[id])
-        for point in pointsInClusterwithLabel[id]:
-            gender = point[5]
-            distance = obj.dist(clusterCentroids[id], point[:-1])
-            if gender==1.0 and distance > fartestDistMalePoint:
-                fartestDistMalePoint = distance
-            elif gender==0.0 and distance > fartestDistFemalePoint:
-                fartestDistFemalePoint = distance    
-        if fartestDistFemalePoint!=0.0: p.append(fartestDistMalePoint/fartestDistFemalePoint)
-        else: p.append(float('inf'))
-    print("P array: ",p)
-    maxD = min(p)
-    print("MaxD: ",maxD)
-    objectiveCosts.append(objectiveCost)
-    objectiveCosts.append(2*objectiveCost)
-    balanceList.append(balance)
-    balanceList.append(2*balance)
-    maxDList.append(maxD)
-    maxDList.append(2*maxD)
-    # print(clusterCentroids[:,0:5])
-    # print(pointsInClusterwithLabel[0][1][5])
-    import matplotlib.pyplot as plt
-    plt.figure(figsize=(8,7))
-    plt.plot(k_list, balanceList, label = "Balance")
-    plt.plot(k_list, maxDList, label = "maxD")
-    plt.xlabel('k-clusters') 
-    plt.ylabel('Fairness Value') 
-    plt.title('Variation of fairness metrics - balance and maxD over different k values') 
-    plt.legend()
-    plt.show()
+	# print("Centroid: ",res[0])
+	# print()
+	# print("Assigned Clusters: ",res[1])
+	# print()
+	# print("Points in cluster: ",res[2])
+	# print()
+	# print("Labels: ",res[4])
+	objectiveCost = obj.calculate_sse(res[2])
+	print("SSE: ",objectiveCost)
+	label = res[1]
+	gender = res[4]
 
-    plt.figure(figsize=(8,7))
-    plt.plot(k_list, objectiveCosts, label = "Objective Cost")
-    plt.xlabel('k-clusters') 
-    plt.ylabel('Cost') 
-    plt.title('Variation of objective cost over different k values') 
-    plt.legend()
-    plt.show()
+	#### GROUP FAIRNESS NOTION
+	freqMale = {}
+	freqFemale = {}
+	for item in set(label):
+		freqMale[item] = 0
+		freqFemale[item] = 0
+
+	for i in range(len(label)):
+		item = label[i]
+		if gender[i]==1.0:
+			if (item in freqMale):
+				freqMale[item] += 1
+			else:
+				freqMale[item] = 1
+		else :
+			if (item in freqFemale):
+				freqFemale[item] += 1
+			else:
+				freqFemale[item] = 1
+
+	ratioInEachCluster = list()
+	for id in list(set(label)):
+		a = freqMale[id]
+		b = freqFemale[id]
+		if(b!=0): ratioInEachCluster.append(a/b)
+		else: ratioInEachCluster.append(float('inf'))
+		# print(id," --- ",freqFemale[id]," --- ",freqMale[id])
+		# print()
+	print("Ratio array: ",ratioInEachCluster)
+	balance = min(ratioInEachCluster)
+	print("Balance: ",balance)
+	
+	### Individual fairness notion
+	clusterCentroidsWithLabel = res[0]
+	pointsInClusterwithLabel = res[2]
+	clusterCentroids = clusterCentroidsWithLabel[:,0:5]
+	
+	p = []
+	for id in range(KTaken):
+		fartestDistMalePoint = float('-inf')
+		fartestDistFemalePoint = float('-inf')
+		# print(id," --- ", pointsInCluster[id])
+		for point in pointsInClusterwithLabel[id]:
+			gender = point[5]
+			distance = obj.dist(clusterCentroids[id], point[:-1])
+			if gender==1.0 and distance > fartestDistMalePoint:
+				fartestDistMalePoint = distance
+			elif gender==0.0 and distance > fartestDistFemalePoint:
+				fartestDistFemalePoint = distance    
+		if fartestDistFemalePoint!=0.0: p.append(fartestDistMalePoint/fartestDistFemalePoint)
+		else: p.append(float('inf'))
+	print("P array: ",p)
+	maxD = min(p)
+	print("MaxD: ",maxD)
+	objectiveCosts.append(objectiveCost)
+	objectiveCosts.append(2*objectiveCost)
+	balanceList.append(balance)
+	balanceList.append(2*balance)
+	maxDList.append(maxD)
+	maxDList.append(2*maxD)
+	# print(clusterCentroids[:,0:5])
+	# print(pointsInClusterwithLabel[0][1][5])
+	import matplotlib.pyplot as plt
+	plt.figure(figsize=(8,7))
+	plt.plot(k_list, balanceList, label = "Balance")
+	plt.plot(k_list, maxDList, label = "maxD")
+	plt.xlabel('k-clusters') 
+	plt.ylabel('Fairness Value') 
+	plt.title('Variation of fairness metrics - balance and maxD over different k values') 
+	plt.legend()
+	plt.show()
+
+	plt.figure(figsize=(8,7))
+	plt.plot(k_list, objectiveCosts, label = "Objective Cost")
+	plt.xlabel('k-clusters') 
+	plt.ylabel('Cost') 
+	plt.title('Variation of objective cost over different k values') 
+	plt.legend()
+	plt.show()
 
 if __name__ == "__main__":
-    main()
+	main()

@@ -5,7 +5,6 @@ import numpy as np
 import math
 import pandas as pd
 import matplotlib.pyplot as plt
-import pca as mypca
 
 def DBSCAN(data, eps, minpts):
     data = data.to_numpy()
@@ -100,7 +99,7 @@ def main():
     dataset1 =  'spiral_old.csv'
     dataset2 = 'spiral.csv'
     dataset3 = 'adult.csv'
-    dataset, ground_truth = read(dataset2)
+    dataset, ground_truth = read(dataset1)
     visualize(dataset, ground_truth, 'groundtruth')
 
     # DBSCAN
@@ -113,8 +112,8 @@ def main():
              print('DBSCAN: eps = {}, minPts = {}'.format(eps, min_samples))
              visualize(dataset, DBSCAN_res, 'DBSCAN')
              print("Clusters: ",unique_labels)
-             print("Actual: ",ground_truth[:5])
-             print("Predicted: ",DBSCAN_res[:5])
+            #  print("Actual: ",ground_truth[:5])
+            #  print("Predicted: ",DBSCAN_res[:5])
 
 if __name__ == "__main__":
     main()

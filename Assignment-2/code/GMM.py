@@ -7,13 +7,13 @@ import kmeans
 import math
 from scipy.stats import multivariate_normal
 
-def est_mult_gaus(X,mu,sigma):
-    m = len(mu)
-    sigma2 = np.diag(sigma)
-    X = X-mu.T
-    p = 1/((2*np.pi)**(m/2)*np.linalg.det(sigma2)**(0.5))*np.exp(-0.5*np.sum(X.dot(np.linalg.pinv(sigma2))*X,axis=1))
+# def est_mult_gaus(X,mu,sigma):
+#     m = len(mu)
+#     sigma2 = np.diag(sigma)
+#     X = X-mu.T
+#     p = 1/((2*np.pi)**(m/2)*np.linalg.det(sigma2)**(0.5))*np.exp(-0.5*np.sum(X.dot(np.linalg.pinv(sigma2))*X,axis=1))
 
-    return p
+#     return p
 
 def e_step(X,pi,mu,sigma,n_clusters):
     N = X.shape[0] 
@@ -95,7 +95,7 @@ def plot_clusters(iteration_no, mu, sigma, prob_c, data, colors=['orange', 'tab:
     plt2.set_zlabel('PDF')
     plt.show()
 
-def GMM_clustering(dataset,n_clusters,max_itr=1000):
+def GMM_clustering(dataset,n_clusters,max_itr=300):
     kmean_res, kmean_centroids = kmeans.k_means(dataset,n_clusters)
     data = dataset.to_numpy()
     centroids = kmean_centroids.to_numpy()
@@ -189,7 +189,7 @@ def main():
     dataset2 = 'spiral.csv'
     dataset3 = 'adult.csv'
     dataset4 = 'test.csv'
-    dataset, ground_truth = read(dataset2)
+    dataset, ground_truth = read(dataset1)
     # print(dataset)
     # print(ground_truth)
     visualize(dataset, ground_truth, 'groundtruth')
